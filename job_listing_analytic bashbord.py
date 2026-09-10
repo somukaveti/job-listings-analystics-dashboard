@@ -66,23 +66,39 @@ print("raw_dataset.csv Saved - 9 columns")
 
 print(df.isnull().sum())
 mean_sal = df['Salary'].mean()
-df['Salary'].fillna(mean_sal, inplace=True)
+
+# --- FIXED CLEANING CODE ---
+mean_salary = df['Salary'].mean()
 mode_exp = df['Experience Level'].mode()[0]
-df['Experience Level'].fillna(mode_exp, inplace=True)
 mode_work = df['Work Mode'].mode()[0]
-df['Work Mode'].fillna(mode_work, inplace=True)
-df.drop_duplicates(inplace=True)
+
+df['Salary'] = df['Salary'].fillna(mean_salary)
+df['Experience Level'] = df['Experience Level'].fillna(mode_exp)
+df['Work Mode'] = df['Work Mode'].fillna(mode_work)
+
+df = df.drop_duplicates()
 print(df.info())
 df.to_csv('cleaned_dataset.csv', index=False)
 
-df['Salary Category'] = pd.cut(df['Salary'], bins=[0,60000,90000,200000], labels=['Low','Medium','High'])
+df['Salary Category'] = pd.cut(
+    df['Salary'], 
+    bins=[0,60000,90000,200000], 
+    labels=['Low','Medium','High']
+)
+
 from sklearn.preprocessing import LabelEncoder
 le = LabelEncoder()
+
 df['Experience Encoded'] = le.fit_transform(df['Experience Level'])
+
 encoded = pd.get_dummies(df['Work Mode'], prefix='Mode')
+
 df = pd.concat([df, encoded], axis=1)
+
 df['Is_Active'] = 1
+
 df.to_csv('processed_dataset.csv', index=False)
+
 print("Processed - 9 + new columns")
 
 import pandas as pd
@@ -156,66 +172,117 @@ print(df[['Salary','Experience Label','WorkMode Label']].corr())
 
 import matplotlib.pyplot as plt
 import seaborn as sns
+import streamlit as st
 
-# Univariate - 4 plots - Doc lo adigina Histogram, Count, Box, Bar
 plt.figure()
 sns.histplot(df["Salary"], kde=True)
 plt.title("Histogram - Salary")
 plt.savefig("hist_salary.png")
-plt.show()
+st.pyplot(plt)
 
 plt.figure()
 sns.countplot(x="Salary Category", data=df)
 plt.title("Count Plot - Salary Category")
 plt.savefig("count_salarycat.png")
-plt.show()
+st.pyplot(plt)
 
 plt.figure()
 sns.boxplot(y="Salary", data=df)
 plt.title("Box Plot - Salary")
 plt.savefig("box_salary.png")
-plt.show()
+st.pyplot(plt)
 
 plt.figure()
 sns.barplot(x="Experience Level", y="Salary", data=df)
 plt.title("Bar Plot - Experience vs Salary")
 plt.savefig("bar_exp_sal.png")
-plt.show()
+st.pyplot(plt)
 
 plt.figure()
 sns.scatterplot(data=df, x="Experience Label", y="Salary")
 plt.title("Scatter Plot - Experience vs Salary")
 plt.savefig("scatter.png")
-plt.show()
+st.pyplot(plt)
 
 plt.figure()
 sns.barplot(x="Work Mode", y="Salary", data=df)
 plt.title("Bar Plot - Work Mode vs Salary")
-plt.show()
+st.pyplot(plt)
 
 plt.figure()
 sns.boxplot(x="Experience Level", y="Salary", data=df)
 plt.title("Box Plot - Exp vs Salary")
-plt.show()
+st.pyplot(plt)
 
 plt.figure()
 sns.violinplot(x="Experience Level", y="Salary", data=df)
 plt.title("Violin Plot")
 plt.savefig("violin.png")
-plt.show()
+st.pyplot(plt)
 
-# Multivariate - 3 plots - Pair, Heatmap, FacetGrid
 sns.pairplot(df[["Salary","Experience Label","WorkMode Label"]])
 plt.savefig("pairplot.png")
-plt.show()
+st.pyplot(plt)
 
 plt.figure()
 sns.heatmap(df[["Salary","Experience Label","WorkMode Label","Is_Active"]].corr(), annot=True, cmap="coolwarm")
 plt.title("Heatmap")
 plt.savefig("heatmap.png")
-plt.show()
+st.pyplot(plt)
 
 g = sns.FacetGrid(df, col="Salary Category")
 g.map_dataframe(sns.histplot, x="Salary")
 g.savefig("facetgrid.png")
-plt.show()
+st.pyplot(plt)
+
+import streamlit as st
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+df = pd.read_csv('processed_dataset.csv')
+st.title("Job Analytics - 100 Rows, 9 Columns")
+menu = st.sidebar.radio(
+    "Go to", 
+    ["Home","Dataset","Stats","Filter","Charts","Insights","Download"]
+)
+if menu=="Home":
+    st.metric("Total", len(df))
+    st.metric(
+        "Avg Salary", 
+        int(df
+            ['Salary'].
+            mean()
+            )
+)
+    st.write(df.shape)
+elif menu=="Dataset":
+    st.dataframe(df)
+elif menu=="Stats":
+    st.write(df.describe())
+    st.write(df['Experience Level'].
+             value_counts()
+)
+elif menu=="Filter":
+    exp = st.selectbox("Exp", df['Experience Level'].unique())
+    st.dataframe(df[df['Experience Level']==exp])
+
+elif menu=="Charts":
+    fig, ax = plt.subplots()
+    sns.histplot(df['Salary'],
+                 ax=ax)
+    st.pyplot(fig)
+    fig2, ax2 = plt.subplots()
+    sns.countplot(
+        x='Salary Category', 
+        data=df, ax=ax2)
+    st.pyplot(fig2)
+
+elif menu=="Insights":
+    st.write(f"High Salary jobs: {len(df[df['Salary']>90000])}")
+    st.write(f"Most common Exp: {df['Experience Level'].mode()[0]}")
+st.download_button(
+    "Download CSV", 
+    df.to_csv(index=False), 
+    "processed_dataset.csv"
+    )
+        
