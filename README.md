@@ -25,7 +25,7 @@ A Streamlit-based interactive dashboard to analyze fake job listings dataset (fr
 ###  Folder Structure
 job-listings-analytics-dashboard/
 │
-├── app.py  (mundu file ni rename chey - space teesi)
+├── app.py  
 ├── requirements.txt
 ├── README.md
 ├── .gitignore
@@ -39,3 +39,9 @@ job-listings-analytics-dashboard/
 └── screenshots/
     ├── dashboard.png
     └── charts.png
+
+### How to run
+python -m streamlit run app.py
+
+### Browser
+localhost:8501
