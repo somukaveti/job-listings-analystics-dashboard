@@ -23,3 +23,19 @@ A Streamlit-based interactive dashboard to analyze fake job listings dataset (fr
 - Scikit-learn (for Label Encoding)
 
 ###  Folder Structure
+job-listings-analytics-dashboard/
+│
+├── app.py  (mundu file ni rename chey - space teesi)
+├── requirements.txt
+├── README.md
+├── .gitignore
+│
+├── data/
+│   └── processed_dataset.csv
+│
+├── notebooks/
+│   └── EDA.ipynb  (nuvvu analysis chesina file)
+│
+└── screenshots/
+    ├── dashboard.png
+    └── charts.png
